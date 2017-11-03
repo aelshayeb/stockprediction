@@ -115,7 +115,7 @@ for i in forecast_setLR:
     df1.loc[next_date] = [np.NaN for _ in range(len(df1.columns)-1)] + [i]
 
 df1['Adj. Close'].plot()
-df1['Forecast'].plot()
+df1['forecast'].plot()
 plt.legend(loc=4)
 plt.xlabel('Date')
 plt.ylabel('Price')
