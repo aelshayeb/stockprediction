@@ -14,7 +14,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from matplotlib import style
-from datetime import datetime
+import datetime
 
 style.use("ggplot")
 
@@ -22,7 +22,9 @@ style.use("ggplot")
 #for general purposes of printing...
 stock = "AMZN"
 
-df1 = ql.get('WIKI/AMZN', start_date="2000-12-31", end_date="2005-12-31")
+ql.ApiConfig.api_key = "KXs7ei6aAkAu5zhWUMsQ"
+
+df1 = ql.get('WIKI/AMZN', start_date="2000-12-31", end_date="2010-12-31")
 df1 = df1[["Adj. Open", "Adj. Close", "Adj. High", "Adj. Low", "Adj. Volume"]]
 df1['HL_PCT'] = (df1["Adj. High"] - df1["Adj. Close"]) / df1["Adj. Close"] * 100
 df1["PCT_change"] = (df1["Adj. Close"] - df1["Adj. Open"]) / df1["Adj. Open"] * 100
@@ -51,7 +53,7 @@ X = preprocessing.scale(X)
 y = np.array(df1["Label"])
 
 #set testing size (20%) verify cross validation
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.7, shuffle = False )
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, shuffle = False )
 
 #define forecasted column
 X = X[:-forecast_out]
@@ -85,16 +87,36 @@ forecast_setSVM = clf2.predict(X_lately)
 #print(X_train)
 #print(y_train)
 #print (df1)
-print("------------------------")
-print("ANALYSIS:")
-print("Analyzing", stock, "stock data for", len(df1), "days using", len(df1) * 5, "data points")
-print("Forecasting stock price" , forecast_out, "days into the future")
-print ("Model accuracy is", accuracyLR ,"% using Linear Regression" )
-print ("Model accuracy is", accuracySVM ,"% using SVM" )
-print("------------------------")
-print ("FORECASTED STOCK PRICES: LINEAR REGRESSION")
-print (forecast_setLR)
-print ("FORECASTED STOCK PRICES: SVM")
-print (forecast_setSVM)
+#print("------------------------")
+#print("ANALYSIS:")
+#print("Analyzing", stock, "stock data for", len(df1), "days using", len(df1) * 5, "data points")
+#print("Forecasting stock price" , forecast_out, "days into the future")
+#print ("Model accuracy is", accuracyLR ,"% using Linear Regression" )
+#print ("Model accuracy is", accuracySVM ,"% using SVM" )
+#print("------------------------")
+#print ("FORECASTED STOCK PRICES: LINEAR REGRESSION")
+#print (forecast_setLR)
+#print ("FORECASTED STOCK PRICES: SVM")
+#print (forecast_setSVM)
 #print("Feature coefficients:" , X_train)
 #print("Label coefficients:" , y_train)
+
+
+df1['forecast'] = np.NaN
+last_date = df1.iloc[-1].name
+last_unix = last_date.timestamp()
+one_day = 86400
+next_unix = last_unix + one_day
+
+#set forecasted stock price as i
+for i in forecast_setLR:
+    next_date = datetime.datetime.fromtimestamp(next_unix)
+    next_unix += one_day
+    df1.loc[next_date] = [np.NaN for _ in range(len(df1.columns)-1)] + [i]
+
+df1['Adj. Close'].plot()
+df1['Forecast'].plot()
+plt.legend(loc=4)
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.show()
